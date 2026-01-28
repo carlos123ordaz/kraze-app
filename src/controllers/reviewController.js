@@ -4,6 +4,15 @@ const Product = require('../models/Product');
 exports.crearReview = async (req, res) => {
   try {
     const { productoId } = req.params;
+    
+    // Verificar que el usuario esté autenticado
+    if (!req.usuario) {
+      return res.status(401).json({
+        success: false,
+        mensaje: 'Debes iniciar sesión para dejar una reseña'
+      });
+    }
+
     const verificacion = await Review.puedeDejarReview(req.usuario.id, productoId);
 
     if (!verificacion.puede) {
@@ -25,13 +34,41 @@ exports.crearReview = async (req, res) => {
       alturaUsuario: req.body.alturaUsuario,
       pesoUsuario: req.body.pesoUsuario,
       imagenes: req.body.imagenes || [],
-      aprobado: false
+      aprobado: false,
+      compraVerificada: true
     });
 
     res.status(201).json({
       success: true,
       mensaje: 'Reseña enviada. Será revisada antes de publicarse.',
       review
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      mensaje: error.message
+    });
+  }
+};
+
+// Verificar si el usuario puede dejar reseña
+exports.verificarPuedeRevisar = async (req, res) => {
+  try {
+    const { productoId } = req.params;
+    
+    if (!req.usuario) {
+      return res.status(200).json({
+        success: true,
+        puede: false,
+        razon: 'Debes iniciar sesión'
+      });
+    }
+
+    const verificacion = await Review.puedeDejarReview(req.usuario.id, productoId);
+
+    res.status(200).json({
+      success: true,
+      ...verificacion
     });
   } catch (error) {
     res.status(500).json({
@@ -109,6 +146,13 @@ exports.obtenerReviewsProducto = async (req, res) => {
 
 exports.obtenerMisReviews = async (req, res) => {
   try {
+    if (!req.usuario) {
+      return res.status(401).json({
+        success: false,
+        mensaje: 'Debes iniciar sesión'
+      });
+    }
+
     const reviews = await Review.find({ usuario: req.usuario.id })
       .populate('producto', 'nombre slug imagenesPrincipales')
       .sort({ createdAt: -1 });
@@ -128,6 +172,13 @@ exports.obtenerMisReviews = async (req, res) => {
 
 exports.actualizarReview = async (req, res) => {
   try {
+    if (!req.usuario) {
+      return res.status(401).json({
+        success: false,
+        mensaje: 'Debes iniciar sesión'
+      });
+    }
+
     const review = await Review.findOne({
       _id: req.params.id,
       usuario: req.usuario.id
@@ -136,7 +187,7 @@ exports.actualizarReview = async (req, res) => {
     if (!review) {
       return res.status(404).json({
         success: false,
-        mensaje: 'Review no encontrada'
+        mensaje: 'Review no encontrada o no tienes permiso para editarla'
       });
     }
 
@@ -172,6 +223,13 @@ exports.actualizarReview = async (req, res) => {
 
 exports.eliminarReview = async (req, res) => {
   try {
+    if (!req.usuario) {
+      return res.status(401).json({
+        success: false,
+        mensaje: 'Debes iniciar sesión'
+      });
+    }
+
     const review = await Review.findOne({
       _id: req.params.id,
       usuario: req.usuario.id
@@ -180,7 +238,7 @@ exports.eliminarReview = async (req, res) => {
     if (!review) {
       return res.status(404).json({
         success: false,
-        mensaje: 'Review no encontrada'
+        mensaje: 'Review no encontrada o no tienes permiso para eliminarla'
       });
     }
 
@@ -206,6 +264,13 @@ exports.eliminarReview = async (req, res) => {
 
 exports.votarUtilidad = async (req, res) => {
   try {
+    if (!req.usuario) {
+      return res.status(401).json({
+        success: false,
+        mensaje: 'Debes iniciar sesión para votar'
+      });
+    }
+
     const { voto } = req.body;
 
     if (!['util', 'no_util'].includes(voto)) {
@@ -240,6 +305,13 @@ exports.votarUtilidad = async (req, res) => {
 
 exports.reportarReview = async (req, res) => {
   try {
+    if (!req.usuario) {
+      return res.status(401).json({
+        success: false,
+        mensaje: 'Debes iniciar sesión para reportar'
+      });
+    }
+
     const { razon } = req.body;
 
     const review = await Review.findById(req.params.id);

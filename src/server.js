@@ -28,7 +28,7 @@ connectDB();
 app.use(helmet());
 
 app.use(cors({
-  origin: [ 'http://localhost:3000','http://localhost:3002'],
+  origin: [ 'http://localhost:3000','http://localhost:3002','https://kraze-admin.vercel.app'],
   credentials: true
 }));
 
