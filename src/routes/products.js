@@ -30,6 +30,6 @@ router.delete('/:id', proteger, autorizarRoles('administrador', 'vendedor'), pro
 router.get('/id/:id', productController.obtenerProductoPorId);
 
 // Ruta para obtener producto por slug (para la tienda pública) - DEBE IR AL FINAL
-router.get('/:slug', productController.obtenerProducto);
+router.get('/slug/:slug', productController.obtenerProducto);
 
 module.exports = router;

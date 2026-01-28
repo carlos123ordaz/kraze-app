@@ -181,6 +181,7 @@ exports.obtenerProducto = async (req, res) => {
       producto
     });
   } catch (error) {
+    console.log(error)
     res.status(500).json({
       success: false,
       mensaje: error.message
