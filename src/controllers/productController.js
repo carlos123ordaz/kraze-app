@@ -18,7 +18,32 @@ exports.crearProducto = async (req, res) => {
     });
   }
 };
+exports.obtenerProductoPorId = async (req, res) => {
+  try {
+    const producto = await Product.findById(req.params.id)
+      .populate('categoria', 'nombre slug')
+      .populate('colecciones', 'nombre slug')
+      .populate('productosRelacionados', 'nombre precio slug imagenesPrincipales rating');
 
+    if (!producto) {
+      return res.status(404).json({
+        success: false,
+        mensaje: 'Producto no encontrado'
+      });
+    }
+
+    res.status(200).json({
+      success: true,
+      producto
+    });
+  } catch (error) {
+    console.error('Error al obtener producto:', error);
+    res.status(500).json({
+      success: false,
+      mensaje: error.message
+    });
+  }
+};
 exports.obtenerProductos = async (req, res) => {
   try {
     const {
